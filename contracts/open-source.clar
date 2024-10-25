@@ -115,3 +115,19 @@
         (stx-transfer? milestone-amount (as-contract tx-sender) (get creator proposal))
 
         (ok true)))
+
+;; Treasury Management
+(define-public (fund-treasury)
+    (begin
+        (var-set dao-treasury (+ (var-get dao-treasury) (stx-get-balance tx-sender)))
+        (stx-transfer? (stx-get-balance tx-sender) tx-sender (as-contract tx-sender))))
+
+;; Read-only Functions
+(define-read-only (get-proposal (proposal-id uint))
+    (map-get? proposals { proposal-id: proposal-id }))
+
+(define-read-only (get-vote (proposal-id uint) (voter principal))
+    (map-get? votes { proposal-id: proposal-id, voter: voter }))
+
+(define-read-only (get-treasury-balance)
+    (var-get dao-treasury))
