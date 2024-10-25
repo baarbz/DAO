@@ -102,3 +102,16 @@
                                 (get no-votes proposal))
                 }))
         (ok true)))
+
+;; Milestone Management
+(define-public (complete-milestone (proposal-id uint) (milestone-index uint))
+    (let ((proposal (unwrap! (map-get? proposals { proposal-id: proposal-id }) ERR-PROPOSAL-NOT-FOUND))
+          (milestone-amount (unwrap! (element-at (get milestone-amounts proposal) milestone-index) ERR-INVALID-AMOUNT)))
+        (asserts! (is-eq (get creator proposal) tx-sender) ERR-NOT-AUTHORIZED)
+        (asserts! (>= (var-get dao-treasury) milestone-amount) ERR-INSUFFICIENT-BALANCE)
+
+        ;; Transfer milestone payment to creator
+        (var-set dao-treasury (- (var-get dao-treasury) milestone-amount))
+        (stx-transfer? milestone-amount (as-contract tx-sender) (get creator proposal))
+
+        (ok true)))
