@@ -52,3 +52,29 @@
 
 (define-read-only (get-token-balance (holder principal))
     (default-to u0 (get balance (map-get? token-balances { holder: holder }))))
+
+;; Proposal Management
+(define-public (submit-proposal (title (string-ascii 50))
+                              (description (string-ascii 500))
+                              (amount uint)
+                              (milestones (list 5 (string-ascii 100)))
+                              (milestone-amounts (list 5 uint)))
+    (let ((proposal-id (+ (var-get proposal-count) u1)))
+        (asserts! (>= (get-token-balance tx-sender) MIN-PROPOSAL-AMOUNT) ERR-INSUFFICIENT-BALANCE)
+        (asserts! (>= amount u0) ERR-INVALID-AMOUNT)
+        (map-set proposals
+            { proposal-id: proposal-id }
+            {
+                creator: tx-sender,
+                title: title,
+                description: description,
+                amount: amount,
+                status: "active",
+                yes-votes: u0,
+                no-votes: u0,
+                start-block: block-height,
+                milestones: milestones,
+                milestone-amounts: milestone-amounts
+            })
+        (var-set proposal-count proposal-id)
+        (ok proposal-id)))
