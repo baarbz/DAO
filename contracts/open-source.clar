@@ -40,3 +40,15 @@
 
 (define-data-var proposal-count uint u0)
 (define-data-var dao-treasury uint u0)
+
+;; Governance Token Functions
+(define-public (mint-governance-tokens (amount uint) (recipient principal))
+    (begin
+        (asserts! (is-eq tx-sender contract-owner) ERR-NOT-AUTHORIZED)
+        (map-set token-balances
+            { holder: recipient }
+            { balance: (+ (get-token-balance recipient) amount) })
+        (ok true)))
+
+(define-read-only (get-token-balance (holder principal))
+    (default-to u0 (get balance (map-get? token-balances { holder: holder }))))
